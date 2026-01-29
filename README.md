@@ -1,4 +1,4 @@
-# PINEAPPLE MARK VII REST CLIENT
+# WIFI PINEAPPLE MARK VII - REST CLIENT
 
 - The leading rogue access point and WiFi pentest toolkit for close access operations.
 - Passive and active attacks analyze vulnerable and misconfigured devices. 
@@ -8,16 +8,16 @@
 >
 > __Version__::     1.3.7
 >
-> __Copyright__::   Copyright (c) 2022 TW-D
+> __Copyright__::   Copyright (c) 2024 TW-D
 >
 > __License__::     Distributes under the same terms as Ruby
 >
 > __Doc__::         https://hak5.github.io/mk7-docs/docs/rest/rest/
 >
-> __Requires__::    Ruby >= 2.7.0p0 and Pineapple Mark VII >= 2.1.0-stable
+> __Requires__::    Ruby >= 2.7.0p0 and WiFi Pineapple Mark VII >= 2.1.0-stable
 >  
 >
-> __Installation (Debian, Ubuntu, Raspbian)__::
+> __Installation (Debian-Based Linux Distributions)__::
 >
 > * sudo apt-get install build-essential curl g++ ruby ruby-dev
 >
@@ -27,7 +27,7 @@
 
 Library allowing the automation of active or passive attack operations.
 
-__Note :__ *"Issues" and "Pull Request" are welcome.*
+__Note :__ *"Issues" and "Pull Requests" are welcome.*
 
 ## Payloads
 
