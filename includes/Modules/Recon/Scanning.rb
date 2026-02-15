@@ -11,18 +11,17 @@ module M_Scanning
     }
 
     private def convert_encryption(encryption)
-        security_type = ''
-        if (encryption != 0)
-            SECURITY_TYPE_VALUES.each do |key, value|
-                if ((encryption & (1 << value)) != 0)
-                    security_type = key
-                    break
-                end
-            end
-            return(security_type)
-        else
+        if (encryption == 0)
             return('Open')
         end
+
+        SECURITY_TYPE_VALUES.each do |key, value|
+            if (!encryption.nil? && (encryption & (1 << value)) != 0)
+                return(key)
+            end
+        end
+
+        return('Unknown')
     end
 
     private def lookup_oui(mac)
