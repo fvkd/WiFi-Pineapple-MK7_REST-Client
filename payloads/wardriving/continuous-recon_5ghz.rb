@@ -27,7 +27,7 @@ if (system_authentication.login)
     #
     led.attack
 
-    scanID = (recon_scanning.start_continuous(false)).scanID
+    scanID = (recon_scanning.start_continuous(false, '5')).scanID
 
     begin
 

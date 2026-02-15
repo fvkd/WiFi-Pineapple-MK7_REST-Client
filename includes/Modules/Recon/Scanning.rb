@@ -26,19 +26,24 @@ module M_Scanning
     end
 
     private def lookup_oui(mac)
+        @oui_cache ||= {}
         oui = (mac.split(':')[0..2].join)
+
+        return @oui_cache[oui] if @oui_cache.key?(oui)
+
         response = self.call(
             'GET',
             ('helpers/lookupOUI/' + oui),
             '',
             '{"available":'   
         )
-        return(
-            (response.available) ? response.vendor : 'Unknown Vendor'
-        )
+
+        result = (response.available) ? response.vendor : 'Unknown Vendor'
+        @oui_cache[oui] = result
+        return(result)
     end
 
-    public def start(scan_time)
+    public def start(scan_time, band = '2')
 
         response = self.call(
             'POST',
@@ -47,7 +52,7 @@ module M_Scanning
                 "live" => false,
                 "autoHandshake" => false,
                 "scan_time" => (scan_time === 0) ? 30 : scan_time,
-                "band" => "2"
+                "band" => band
             },
             '{"scanRunning":true,"scanID":'   
         )
@@ -63,7 +68,7 @@ module M_Scanning
         
     end
 
-    public def start_continuous(autoHandshake)
+    public def start_continuous(autoHandshake, band = '2')
         response = self.call(
             'POST',
             'recon/start',
@@ -71,7 +76,7 @@ module M_Scanning
                 "live" => false,
                 "autoHandshake" => autoHandshake,
                 "scan_time" => 0,
-                "band" => "2"
+                "band" => band
             },
             '{"scanRunning":true,"scanID":'   
         )
