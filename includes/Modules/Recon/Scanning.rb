@@ -26,16 +26,18 @@ module M_Scanning
     end
 
     private def lookup_oui(mac)
+        @oui_cache ||= {}
         oui = (mac.split(':')[0..2].join)
+        return @oui_cache[oui] if @oui_cache.has_key?(oui)
+
         response = self.call(
             'GET',
             ('helpers/lookupOUI/' + oui),
             '',
             '{"available":'   
         )
-        return(
-            (response.available) ? response.vendor : 'Unknown Vendor'
-        )
+        @oui_cache[oui] = (response.available) ? response.vendor : 'Unknown Vendor'
+        return @oui_cache[oui]
     end
 
     public def start(scan_time)
