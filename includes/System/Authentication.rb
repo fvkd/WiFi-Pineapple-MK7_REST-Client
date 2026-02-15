@@ -22,7 +22,7 @@ module M_Authentication
 
             body = response.body
 
-        rescue Exception => exception
+        rescue StandardError => exception
 
             abort('System::Authentication => ' + exception.message)
 
