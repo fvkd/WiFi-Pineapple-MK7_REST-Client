@@ -53,7 +53,7 @@ if (system_authentication.login)
 
     puts('[+] Spam beacon frames')
 
-    `curl -s 'http://#{DEAUTHER_ADDRESS}/run?cmd=attack%20-b' -H 'Accept: */*' -H 'Connection: keep-alive'`
+    system('curl', '-s', "http://#{DEAUTHER_ADDRESS}/run?cmd=attack%20-b", '-H', 'Accept: */*', '-H', 'Connection: keep-alive', out: File::NULL)
 
     # SPECIAL
     #
@@ -65,7 +65,7 @@ if (system_authentication.login)
     #
     led.finish
 
-    `curl -s 'http://#{DEAUTHER_ADDRESS}/run?cmd=attack' -H 'Accept: */*' -H 'Connection: keep-alive'`
+    system('curl', '-s', "http://#{DEAUTHER_ADDRESS}/run?cmd=attack", '-H', 'Accept: */*', '-H', 'Connection: keep-alive', out: File::NULL)
 
     # CLEANUP
     #

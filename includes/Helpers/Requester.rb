@@ -18,7 +18,7 @@ module Requester
 
             body = response.body
 
-        rescue Exception => exception
+        rescue StandardError => exception
 
             abort("Helpers::Requester => #{uri} - #{exception.message}")
 

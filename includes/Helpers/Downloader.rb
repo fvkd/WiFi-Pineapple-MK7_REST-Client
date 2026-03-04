@@ -18,7 +18,7 @@ module Downloader
 
             file = response.file()
 
-        rescue Exception => exception
+        rescue StandardError => exception
 
             abort("Helpers::Downloader => #{filename} - #{exception.message}")
 

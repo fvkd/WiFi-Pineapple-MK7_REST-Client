@@ -14,7 +14,7 @@ module M_LED
 
             return(true)
 
-        rescue Exception => exception
+        rescue StandardError => exception
 
             abort('System::LED => ' + exception.message)
 
