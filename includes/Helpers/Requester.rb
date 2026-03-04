@@ -25,9 +25,11 @@ module Requester
         else
 
             if (body.include?(confirm))
-
-                return(JSON.parse(body, object_class: OpenStruct))
-            
+                begin
+                    return(JSON.parse(body, object_class: OpenStruct))
+                rescue JSON::ParserError
+                    return(body)
+                end
             else
 
                 return(body)
