@@ -66,13 +66,13 @@ if (system_authentication.login)
         clients = ap.clients
 
         OPENAP_OUIS.each do |oui, type|
-            if (bssid.start_with?(oui) and encryption === 'Open')
+            if (bssid.start_with?(oui) and encryption == 'Open')
                 puts("[>] #{(ap.ssid).inspect} - #{ap.bssid} - #{type}")
             end
         end
 
         MANAGEMENTAP_OUIS.each do |oui, type|
-            if (bssid.start_with?(oui) and !(encryption === 'Open'))
+            if (bssid.start_with?(oui) and !(encryption == 'Open'))
                 puts("[>] #{(ap.ssid).inspect} - #{ap.bssid} - #{type}")
             end
         end
