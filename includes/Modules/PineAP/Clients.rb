@@ -8,7 +8,7 @@ module M_Clients
             '[{'
         )
         return(
-            (response === "null\r\n") ? [] : response
+            (response == "null\r\n") ? [] : response
         )
     end
 
@@ -20,7 +20,7 @@ module M_Clients
             '[{'
         )
         return(
-            (response === "null\r\n") ? [] : response
+            (response == "null\r\n") ? [] : response
         )
     end
 
