@@ -24,7 +24,7 @@ system_authentication = PineappleMK7::System::Authentication.new
 system_authentication.host = "<PINEAPPLE-IP-ADDRESS>"
 system_authentication.port = 1471
 system_authentication.mac = "<PINEAPPLE-MAC-ADDRESS>"
-system_authentication.password = "<ROOT-ACCOUNT-PASSWORD>"
+system_authentication.password = ENV['PINEAPPLE_PASSWORD']
 
 if (system_authentication.login)
 
