@@ -109,7 +109,7 @@ system_authentication = PineappleMK7::System::Authentication.new
 system_authentication.host = "<PINEAPPLE-IP-ADDRESS>"
 system_authentication.port = 1471
 system_authentication.mac = "<PINEAPPLE-MAC-ADDRESS>"
-system_authentication.password = "<ROOT-ACCOUNT-PASSWORD>"
+system_authentication.password = ENV['PINEAPPLE_PASSWORD']
 
 if (system_authentication.login)
 
@@ -174,7 +174,7 @@ system_authentication = PineappleMK7::System::Authentication.new
 system_authentication.host = (string) "<PINEAPPLE-IP-ADDRESS>"
 system_authentication.port = (integer) 1471
 system_authentication.mac = (string) "<PINEAPPLE-MAC-ADDRESS>"
-system_authentication.password = (string) "<ROOT-ACCOUNT-PASSWORD>"
+system_authentication.password = (string) ENV['PINEAPPLE_PASSWORD']
 
 system_authentication.login()
 ```
