@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module M_Scanning
 
     #
@@ -8,7 +10,7 @@ module M_Scanning
         'WPA' => 0x02,
         'WPA2' => 0x03,
         'WPA3' => 0x04
-    }
+    }.freeze
 
     private def convert_encryption(encryption)
         if (encryption == 0)
@@ -24,11 +26,44 @@ module M_Scanning
         return('Unknown')
     end
 
+    private def preload_ouis(macs)
+        @oui_cache ||= {}
+        @oui_mutex ||= Mutex.new
+
+        ouis_to_fetch = macs.map { |mac| mac.split(':')[0..2].join }.uniq
+        ouis_to_fetch.reject! { |oui| @oui_mutex.synchronize { @oui_cache.key?(oui) } }
+
+        return if ouis_to_fetch.empty?
+
+        # Concurrency limit of 10 threads
+        ouis_to_fetch.each_slice(10).each do |slice|
+            slice.map do |oui|
+                Thread.new do
+                    begin
+                        response = self.call(
+                            'GET',
+                            ("helpers/lookupOUI/#{oui}"),
+                            '',
+                            '{"available":'
+                        )
+                        result = response.available ? response.vendor : 'Unknown Vendor'
+                        @oui_mutex.synchronize { @oui_cache[oui] = result }
+                    rescue StandardError
+                        @oui_mutex.synchronize { @oui_cache[oui] = 'Unknown Vendor' }
+                    end
+                end
+            end.each(&:join)
+        end
+    end
+
     private def lookup_oui(mac)
         @oui_cache ||= {}
+        @oui_mutex ||= Mutex.new
         oui = (mac.split(':')[0..2].join)
 
-        return @oui_cache[oui] if @oui_cache.key?(oui)
+        @oui_mutex.synchronize do
+            return @oui_cache[oui] if @oui_cache.key?(oui)
+        end
 
         response = self.call(
             'GET',
@@ -38,7 +73,7 @@ module M_Scanning
         )
 
         result = (response.available) ? response.vendor : 'Unknown Vendor'
-        @oui_cache[oui] = result
+        @oui_mutex.synchronize { @oui_cache[oui] = result }
         return(result)
     end
 
@@ -51,7 +86,7 @@ module M_Scanning
                 "live" => false,
                 "autoHandshake" => false,
                 "scan_time" => (scan_time == 0) ? 30 : scan_time,
-                "band" => "2"
+                "band" => band
             },
             '{"scanRunning":true,"scanID":'   
         )
@@ -101,39 +136,40 @@ module M_Scanning
             '{"APResults":['
         )
 
-        ap_results = response.APResults
-        if (!ap_results.nil?)
-            ap_results.each do |ap|
-                ap.oui = self.lookup_oui(ap.bssid)
-                ap.encryption = self.convert_encryption(ap.encryption)
-                clients = ap.clients
-                if (!clients.nil?)
-                    clients.each do |client|
-                        client.client_oui = self.lookup_oui(client.client_mac)
-                    end
-                end
-            end
-        else
-            response.APResults = []
+        all_macs = []
+
+        ap_results = response.APResults || []
+        ap_results.each do |ap|
+            all_macs << ap.bssid
+            ap.clients&.each { |client| all_macs << client.client_mac }
         end
 
-        unassociated_results = response.UnassociatedClientResults
-        if (!unassociated_results.nil?)
-            unassociated_results.each do |client|
-                client.client_oui = self.lookup_oui(client.client_mac)
-            end
-        else
-            response.UnassociatedClientResults = []
-        end
+        unassociated_results = response.UnassociatedClientResults || []
+        unassociated_results.each { |client| all_macs << client.client_mac }
 
-        outofrange_results = response.OutOfRangeClientResults
-        if (!outofrange_results.nil?)
-            outofrange_results.each do |client|
+        outofrange_results = response.OutOfRangeClientResults || []
+        outofrange_results.each { |client| all_macs << client.client_mac }
+
+        self.preload_ouis(all_macs)
+
+        ap_results.each do |ap|
+            ap.oui = self.lookup_oui(ap.bssid)
+            ap.encryption = self.convert_encryption(ap.encryption)
+            ap.clients&.each do |client|
                 client.client_oui = self.lookup_oui(client.client_mac)
             end
-        else
-            response.OutOfRangeClientResults = []
         end
+        response.APResults = ap_results
+
+        unassociated_results.each do |client|
+            client.client_oui = self.lookup_oui(client.client_mac)
+        end
+        response.UnassociatedClientResults = unassociated_results
+
+        outofrange_results.each do |client|
+            client.client_oui = self.lookup_oui(client.client_mac)
+        end
+        response.OutOfRangeClientResults = outofrange_results
 
         return(response)
 
@@ -154,7 +190,7 @@ module M_Scanning
     public def deauth_ap(ap)
 
         clients_mac = []
-        ap.clients.each do |client|
+        ap.clients&.each do |client|
             clients_mac << client.client_mac
         end
 
@@ -170,6 +206,15 @@ module M_Scanning
             '{"success":true}'
         )
 
+    end
+
+    public def deauth_aps(aps)
+        # Concurrency limit of 10 threads
+        aps.each_slice(10).each do |slice|
+            slice.map do |ap|
+                Thread.new { self.deauth_ap(ap) }
+            end.each(&:join)
+        end
     end
 
     public def delete(scanID)

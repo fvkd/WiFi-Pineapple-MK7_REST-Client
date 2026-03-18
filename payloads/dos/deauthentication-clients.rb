@@ -49,11 +49,9 @@ if (system_authentication.login)
 
         if (ap_clients.size > 0)
             puts('[+] Clients deauthenticated')
-            ap_clients.each do |ap|
-                recon_scanning.deauth_ap(ap)
-                pp(ap)
-                sleep(INTERVAL)
-            end
+            recon_scanning.deauth_aps(ap_clients)
+            ap_clients.each { |ap| pp(ap) }
+            sleep(INTERVAL)
         end
 
         # FINISH
