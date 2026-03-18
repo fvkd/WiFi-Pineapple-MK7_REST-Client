@@ -51,7 +51,7 @@ module M_Scanning
                 "live" => false,
                 "autoHandshake" => false,
                 "scan_time" => (scan_time == 0) ? 30 : scan_time,
-                "band" => "2"
+                "band" => band
             },
             '{"scanRunning":true,"scanID":'   
         )
