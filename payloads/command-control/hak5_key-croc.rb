@@ -68,15 +68,21 @@ if (system_authentication.login)
                 IO.popen(
                 [
                 'sshpass',
-                "-p #{KEYCROC_PASSWORD}",
+                '-p',
+                KEYCROC_PASSWORD.to_s,
                 'ssh',
-                '-o ConnectTimeout=5',
-                '-o StrictHostKeyChecking="no"',
-                '-o UserKnownHostsFile="/dev/null"',
-                "-p 22",
-                "-q root@#{client.ip}",
-                "tail -f /root/loot/croc_char.log"
-                ].join(' '),
+                '-o',
+                'ConnectTimeout=5',
+                '-o',
+                'StrictHostKeyChecking=no',
+                '-o',
+                'UserKnownHostsFile=/dev/null',
+                '-p',
+                '22',
+                '-q',
+                "root@#{client.ip}",
+                'tail -f /root/loot/croc_char.log'
+                ],
                 'r+'
                 ) do |io|
                     io.sync = true
@@ -89,15 +95,21 @@ if (system_authentication.login)
                 IO.popen(
                 [
                 'sshpass',
-                "-p #{KEYCROC_PASSWORD}",
+                '-p',
+                KEYCROC_PASSWORD.to_s,
                 'ssh',
-                '-o ConnectTimeout=5',
-                '-o StrictHostKeyChecking="no"',
-                '-o UserKnownHostsFile="/dev/null"',
-                "-p 22",
-                "-q root@#{client.ip}",
+                '-o',
+                'ConnectTimeout=5',
+                '-o',
+                'StrictHostKeyChecking=no',
+                '-o',
+                'UserKnownHostsFile=/dev/null',
+                '-p',
+                '22',
+                '-q',
+                "root@#{client.ip}",
                 'killall tail'
-                ].join(' '),
+                ],
                 'r'
                 )
                 break

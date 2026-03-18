@@ -35,19 +35,23 @@ if (system_authentication.login)
     puts('[+] Access Points - Wireless Network Mapping with WiGLE')
 
     (output.APResults).each do |ap|
-        ssid = URI.encode_www_form_component(ap.ssid)
+        ssid = ap.ssid
         bssid = ap.bssid
         IO.popen(
             [
                 'curl',
                 '--silent',
-                '--connect-timeout 10',
-                '--request GET',
-                '--header \"Accept: application/json\"',
-                "--user #{WIGLE_API}",
-                "--basic",
-                "\"https://api.wigle.net/api/v2/network/search?onlymine=false&freenet=false&paynet=false&ssid=#{ssid}&netid=#{bssid}\""
-            ].join(' '),
+                '--connect-timeout',
+                '10',
+                '--request',
+                'GET',
+                '--header',
+                'Accept: application/json',
+                '--user',
+                WIGLE_API.to_s,
+                '--basic',
+                "https://api.wigle.net/api/v2/network/search?onlymine=false&freenet=false&paynet=false&ssid=#{URI.encode_www_form_component(ssid)}&netid=#{bssid}"
+            ],
             'r'
         ) do |io|
             wigle_output = JSON.parse(io.gets)
