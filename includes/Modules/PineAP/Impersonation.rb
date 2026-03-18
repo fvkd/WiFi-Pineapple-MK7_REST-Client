@@ -1,3 +1,5 @@
+require('base64')
+
 module M_Impersonation
 
     public def output()

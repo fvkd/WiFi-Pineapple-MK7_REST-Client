@@ -1,5 +1,4 @@
 require('json')
-require('base64')
 require('net/ssh')
 require('fileutils')
 require('rest-client')
