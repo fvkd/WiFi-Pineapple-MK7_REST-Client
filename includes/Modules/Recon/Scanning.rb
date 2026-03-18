@@ -26,19 +26,24 @@ module M_Scanning
 
     private def lookup_oui(mac)
         @oui_cache ||= {}
+        @mutex ||= Mutex.new
         oui = (mac.split(':')[0..2].join)
 
-        return @oui_cache[oui] if @oui_cache.key?(oui)
+        @mutex.synchronize do
+            return @oui_cache[oui] if @oui_cache.key?(oui)
+        end
 
         response = self.call(
             'GET',
             ('helpers/lookupOUI/' + oui),
             '',
-            '{"available":'   
+            '{"available":'
         )
 
         result = (response.available) ? response.vendor : 'Unknown Vendor'
-        @oui_cache[oui] = result
+        @mutex.synchronize do
+            @oui_cache[oui] = result
+        end
         return(result)
     end
 
@@ -92,6 +97,39 @@ module M_Scanning
         )
     end
 
+    private def preload_ouis(macs, concurrency = 10)
+        return if macs.nil? || macs.empty?
+        @oui_cache ||= {}
+        @mutex ||= Mutex.new
+
+        unique_macs = macs.uniq
+        pending_macs = []
+        @mutex.synchronize do
+            pending_macs = unique_macs.reject { |mac| @oui_cache.key?(mac.split(':')[0..2].join) }
+        end
+
+        return if pending_macs.empty?
+
+        queue = Queue.new
+        pending_macs.each { |mac| queue << mac }
+
+        workers = [concurrency, pending_macs.size].min
+        threads = workers.times.map do
+            Thread.new do
+                until queue.empty?
+                    mac = nil
+                    begin
+                        mac = queue.pop(true)
+                    rescue ThreadError
+                        break
+                    end
+                    self.lookup_oui(mac) if mac
+                end
+            end
+        end
+        threads.each(&:join)
+    end
+
     public def output(scanID)
 
         response = self.call(
@@ -101,54 +139,101 @@ module M_Scanning
             '{"APResults":['
         )
 
-        ap_results = response.APResults
-        if (!ap_results.nil?)
-            ap_results.each do |ap|
-                ap.oui = self.lookup_oui(ap.bssid)
-                ap.encryption = self.convert_encryption(ap.encryption)
-                clients = ap.clients
-                if (!clients.nil?)
-                    clients.each do |client|
-                        client.client_oui = self.lookup_oui(client.client_mac)
-                    end
-                end
-            end
-        else
-            response.APResults = []
-        end
+        ap_results = response.APResults || []
+        unassociated_results = response.UnassociatedClientResults || []
+        outofrange_results = response.OutOfRangeClientResults || []
 
-        unassociated_results = response.UnassociatedClientResults
-        if (!unassociated_results.nil?)
-            unassociated_results.each do |client|
+        # Collect all MAC addresses for preloading
+        macs = []
+        ap_results.each do |ap|
+            macs << ap.bssid
+            ap.clients&.each { |client| macs << client.client_mac }
+        end
+        unassociated_results.each { |client| macs << client.client_mac }
+        outofrange_results.each { |client| macs << client.client_mac }
+
+        self.preload_ouis(macs)
+
+        ap_results.each do |ap|
+            ap.oui = self.lookup_oui(ap.bssid)
+            ap.encryption = self.convert_encryption(ap.encryption)
+            ap.clients&.each do |client|
                 client.client_oui = self.lookup_oui(client.client_mac)
             end
-        else
-            response.UnassociatedClientResults = []
         end
 
-        outofrange_results = response.OutOfRangeClientResults
-        if (!outofrange_results.nil?)
-            outofrange_results.each do |client|
-                client.client_oui = self.lookup_oui(client.client_mac)
-            end
-        else
-            response.OutOfRangeClientResults = []
+        unassociated_results.each do |client|
+            client.client_oui = self.lookup_oui(client.client_mac)
         end
+
+        outofrange_results.each do |client|
+            client.client_oui = self.lookup_oui(client.client_mac)
+        end
+
+        response.APResults = ap_results
+        response.UnassociatedClientResults = unassociated_results
+        response.OutOfRangeClientResults = outofrange_results
 
         return(response)
 
     end
 
     public def tags(ap)
-        self.call(
+        @tags_cache ||= {}
+        @mutex ||= Mutex.new
+        cache_key = "#{ap.scan_id}_#{ap.bssid}"
+
+        @mutex.synchronize do
+            return @tags_cache[cache_key] if @tags_cache.key?(cache_key)
+        end
+
+        response = self.call(
             'POST',
             'recon/tags',
             {
                 "scan_id" => ap.scan_id,
                 "bssid" => ap.bssid
             },
-            '[{"scan_id":'   
+            '[{"scan_id":'
         )
+
+        @mutex.synchronize do
+            @tags_cache[cache_key] = response
+        end
+        return(response)
+    end
+
+    public def preload_tags(aps, concurrency = 10)
+        return if aps.nil? || aps.empty?
+        @tags_cache ||= {}
+        @mutex ||= Mutex.new
+
+        # Filter out APs already in cache
+        pending_aps = []
+        @mutex.synchronize do
+            pending_aps = aps.reject { |ap| @tags_cache.key?("#{ap.scan_id}_#{ap.bssid}") }
+        end
+
+        return if pending_aps.empty?
+
+        queue = Queue.new
+        pending_aps.each { |ap| queue << ap }
+
+        workers = [concurrency, pending_aps.size].min
+        threads = workers.times.map do
+            Thread.new do
+                until queue.empty?
+                    ap = nil
+                    begin
+                        ap = queue.pop(true)
+                    rescue ThreadError
+                        break
+                    end
+                    self.tags(ap) if ap
+                end
+            end
+        end
+        threads.each(&:join)
     end
 
     public def deauth_ap(ap)

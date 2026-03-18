@@ -31,6 +31,8 @@ if (system_authentication.login)
     #
     led.special
     
+    recon_scanning.preload_tags(output.APResults)
+
     puts('[@] Access Points - Tagged Parameters')
     (output.APResults).each do |ap|
         puts('')
