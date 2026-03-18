@@ -39,6 +39,18 @@ module M_Scanning
         return @oui_cache[oui]
     end
 
+    private def enrich_ap(ap)
+        ap.oui = self.lookup_oui(ap.bssid)
+        ap.encryption = self.convert_encryption(ap.encryption)
+        self.enrich_clients(ap.clients)
+    end
+
+    private def enrich_clients(clients)
+        clients&.each do |client|
+            client.client_oui = self.lookup_oui(client.client_mac)
+        end
+    end
+
     public def start(scan_time)
 
         response = self.call(
@@ -98,39 +110,14 @@ module M_Scanning
             '{"APResults":['
         )
 
-        ap_results = response.APResults
-        if (!ap_results.nil?)
-            ap_results.each do |ap|
-                ap.oui = self.lookup_oui(ap.bssid)
-                ap.encryption = self.convert_encryption(ap.encryption)
-                clients = ap.clients
-                if (!clients.nil?)
-                    clients.each do |client|
-                        client.client_oui = self.lookup_oui(client.client_mac)
-                    end
-                end
-            end
-        else
-            response.APResults = []
-        end
+        response.APResults ||= []
+        response.APResults.each { |ap| self.enrich_ap(ap) }
 
-        unassociated_results = response.UnassociatedClientResults
-        if (!unassociated_results.nil?)
-            unassociated_results.each do |client|
-                client.client_oui = self.lookup_oui(client.client_mac)
-            end
-        else
-            response.UnassociatedClientResults = []
-        end
+        response.UnassociatedClientResults ||= []
+        self.enrich_clients(response.UnassociatedClientResults)
 
-        outofrange_results = response.OutOfRangeClientResults
-        if (!outofrange_results.nil?)
-            outofrange_results.each do |client|
-                client.client_oui = self.lookup_oui(client.client_mac)
-            end
-        else
-            response.OutOfRangeClientResults = []
-        end
+        response.OutOfRangeClientResults ||= []
+        self.enrich_clients(response.OutOfRangeClientResults)
 
         return(response)
 
