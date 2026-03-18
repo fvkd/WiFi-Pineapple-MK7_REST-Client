@@ -171,6 +171,11 @@ module PineappleMK7
             attr_accessor(:host, :port, :mac)
             attr_writer(:password)
             include(M_Authentication)
+
+            class << self
+                attr_accessor(:api_url, :bearer_token, :pineapple_host, :pineapple_mac, :pineapple_password)
+                private(:api_url=, :bearer_token=, :pineapple_host=, :pineapple_mac=, :pineapple_password=)
+            end
         end
 
         class LED

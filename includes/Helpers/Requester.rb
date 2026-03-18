@@ -6,13 +6,13 @@ module Requester
 
             response = Request.execute(
                 method: method,
-                url: (PineappleMK7::System::Authentication::API_URL + uri),
+                url: (PineappleMK7::System::Authentication.api_url + uri),
                 timeout: 20,
                 payload: payload.to_json,
                 headers: { 
                     content_type: :json, 
                     accept: :json,
-                    'Authorization' => ("Bearer " + PineappleMK7::System::Authentication::BEARER_TOKEN)
+                    'Authorization' => ("Bearer " + PineappleMK7::System::Authentication.bearer_token)
                 }
             )
 

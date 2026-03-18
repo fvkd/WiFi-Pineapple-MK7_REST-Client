@@ -6,12 +6,12 @@ module Downloader
 
             response = Request.execute(
                 method: 'POST',
-                url: (PineappleMK7::System::Authentication::API_URL + 'download'),
+                url: (PineappleMK7::System::Authentication.api_url + 'download'),
                 timeout: 30,
                 payload: {"filename" => filename}.to_json,
                 headers: { 
                     content_type: :json, 
-                    'Authorization' => ("Bearer " + PineappleMK7::System::Authentication::BEARER_TOKEN)
+                    'Authorization' => ("Bearer " + PineappleMK7::System::Authentication.bearer_token)
                 },
                 raw_response: true
             )

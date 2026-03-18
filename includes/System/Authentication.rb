@@ -30,11 +30,11 @@ module M_Authentication
 
             if (body.include?('{"token":"'))
 
-                self.class.const_set(:API_URL, url)
-                self.class.const_set(:BEARER_TOKEN, JSON.parse(body)['token'])
-                self.class.const_set(:PINEAPPLE_HOST, @host)
-                self.class.const_set(:PINEAPPLE_MAC, @mac)
-                self.class.const_set(:PINEAPPLE_PASSWORD, @password)
+                self.class.send(:api_url=, url)
+                self.class.send(:bearer_token=, JSON.parse(body)['token'])
+                self.class.send(:pineapple_host=, @host)
+                self.class.send(:pineapple_mac=, @mac)
+                self.class.send(:pineapple_password=, @password)
                 return(true)
 
             else

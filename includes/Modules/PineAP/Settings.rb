@@ -13,7 +13,7 @@ module M_Settings
         @beacon_responses = false
         @broadcast_ssid_pool = false
         @broadcast_ssid_pool_random = false
-        @pineap_mac = PineappleMK7::System::Authentication::PINEAPPLE_MAC
+        @pineap_mac = PineappleMK7::System::Authentication.pineapple_mac
         @target_mac = 'FF:FF:FF:FF:FF:FF'
         @beacon_response_interval = 'NORMAL'
         @beacon_interval = 'NORMAL'

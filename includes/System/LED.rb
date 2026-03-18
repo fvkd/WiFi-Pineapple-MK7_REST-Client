@@ -5,9 +5,9 @@ module M_LED
         begin
 
             Net::SSH.start(
-                PineappleMK7::System::Authentication::PINEAPPLE_HOST, 
+                PineappleMK7::System::Authentication.pineapple_host,
                 'root', 
-                :password => PineappleMK7::System::Authentication::PINEAPPLE_PASSWORD
+                :password => PineappleMK7::System::Authentication.pineapple_password
             ) do |client|
                 client.exec('/sbin/LED ' + state)
             end
