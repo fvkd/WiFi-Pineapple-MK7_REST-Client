@@ -34,7 +34,7 @@ class TestScanning < Minitest::Test
   def setup
     # Mock Authentication constants
     unless defined?(PineappleMK7::System::Authentication::API_URL)
-        PineappleMK7::System::Authentication.const_set(:API_URL, 'http://mock:1471/api/')
+        PineappleMK7::System::Authentication.const_set(:API_URL, 'https://mock:1471/api/')
         PineappleMK7::System::Authentication.const_set(:BEARER_TOKEN, 'mock_token')
     end
 

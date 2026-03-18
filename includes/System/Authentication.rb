@@ -4,7 +4,7 @@ module M_Authentication
 
         begin
 
-            url = ('http://' + @host + ':' + @port.to_s + '/api/')
+            url = ('https://' + @host + ':' + @port.to_s + '/api/')
 
             response = Request.execute(
                 method: :post,
